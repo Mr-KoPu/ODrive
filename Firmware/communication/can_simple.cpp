@@ -127,7 +127,7 @@ uint32_t CANSimple::get_motor_error_callback(const Axis& axis) {
 
     can_setSignal(txmsg, axis.motor_.error_, 0, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 uint32_t CANSimple::get_encoder_error_callback(const Axis& axis) {
@@ -139,7 +139,7 @@ uint32_t CANSimple::get_encoder_error_callback(const Axis& axis) {
 
     can_setSignal(txmsg, axis.encoder_.error_, 0, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 uint32_t CANSimple::get_sensorless_error_callback(const Axis& axis) {
@@ -151,7 +151,7 @@ uint32_t CANSimple::get_sensorless_error_callback(const Axis& axis) {
 
     can_setSignal(txmsg, axis.sensorless_estimator_.error_, 0, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 void CANSimple::set_axis_nodeid_callback(Axis& axis, const can_Message_t& msg) {
@@ -179,7 +179,7 @@ uint32_t CANSimple::get_encoder_estimates_callback(const Axis& axis) {
     can_setSignal<float>(txmsg, axis.encoder_.pos_estimate_, 0, 32, true);
     can_setSignal<float>(txmsg, axis.encoder_.vel_estimate_, 32, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 uint32_t CANSimple::get_sensorless_estimates_callback(const Axis& axis) {
@@ -195,7 +195,7 @@ uint32_t CANSimple::get_sensorless_estimates_callback(const Axis& axis) {
     can_setSignal<float>(txmsg, axis.sensorless_estimator_.pll_pos_, 0, 32, true);
     can_setSignal<float>(txmsg, axis.sensorless_estimator_.vel_estimate_, 32, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 uint32_t CANSimple::get_encoder_count_callback(const Axis& axis) {
@@ -207,7 +207,7 @@ uint32_t CANSimple::get_encoder_count_callback(const Axis& axis) {
 
     can_setSignal<int32_t>(txmsg, axis.encoder_.shadow_count_, 0, 32, true);
     can_setSignal<int32_t>(txmsg, axis.encoder_.count_in_cpr_, 32, 32, true);
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 void CANSimple::set_input_pos_callback(Axis& axis, const can_Message_t& msg) {
@@ -264,7 +264,7 @@ uint32_t CANSimple::get_iq_callback(const Axis& axis) {
     can_setSignal<float>(txmsg, axis.motor_.current_control_.Iq_setpoint, 0, 32, true);
     can_setSignal<float>(txmsg, axis.motor_.current_control_.Iq_measured, 32, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 uint32_t CANSimple::get_vbus_voltage_callback(const Axis& axis) {
@@ -279,7 +279,7 @@ uint32_t CANSimple::get_vbus_voltage_callback(const Axis& axis) {
     static_assert(sizeof(vbus_voltage) == sizeof(floatBytes));
     can_setSignal<float>(txmsg, vbus_voltage, 0, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 1);
 }
 
 void CANSimple::clear_errors_callback(Axis& axis, const can_Message_t& msg) {
@@ -296,7 +296,7 @@ uint32_t CANSimple::send_heartbeat(const Axis& axis) {
     can_setSignal(txmsg, axis.error_, 0, 32, true);
     can_setSignal(txmsg, axis.current_state_, 32, 32, true);
 
-    return odCAN->write(txmsg);
+    return odCAN->write(txmsg, 2);
 }
 
 void CANSimple::send_cyclic(Axis& axis) {

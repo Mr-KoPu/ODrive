@@ -869,7 +869,7 @@ uint32_t HAL_CAN_IsSleepActive(CAN_HandleTypeDef *hcan)
   *         This parameter can be a value of @arg CAN_Tx_Mailboxes.
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_CAN_AddTxMessage(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *pHeader, uint8_t aData[], uint32_t *pTxMailbox)
+HAL_StatusTypeDef HAL_CAN_AddTxMessageToMailbox(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *pHeader, uint8_t aData[], uint32_t *pTxMailbox)
 {
   uint32_t transmitmailbox;
 
@@ -896,7 +896,16 @@ HAL_StatusTypeDef HAL_CAN_AddTxMessage(CAN_HandleTypeDef *hcan, CAN_TxHeaderType
         ((hcan->Instance->TSR & CAN_TSR_TME2) != RESET))
     {
       /* Select an empty transmit mailbox */
-      transmitmailbox = (hcan->Instance->TSR & CAN_TSR_CODE) >> CAN_TSR_CODE_Pos;
+      if ((*pTxMailbox & 1) && ((hcan->Instance->TSR & CAN_TSR_TME0) != RESET)) {
+        transmitmailbox = 0;
+      } else if ((*pTxMailbox & 2) && ((hcan->Instance->TSR & CAN_TSR_TME1) != RESET)) {
+        transmitmailbox = 1;
+      } else if ((*pTxMailbox & 4) && ((hcan->Instance->TSR & CAN_TSR_TME2) != RESET)) {
+        transmitmailbox = 2;
+      } else {
+        hcan->ErrorCode |= HAL_CAN_ERROR_PARAM;
+        return HAL_ERROR;
+      }
 
       /* Store the Tx mailbox */
       *pTxMailbox = 1U << transmitmailbox;

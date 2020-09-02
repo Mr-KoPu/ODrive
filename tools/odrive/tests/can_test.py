@@ -117,8 +117,8 @@ class TestSimpleCAN():
         axis = odrive.handle.axis0
         axis.config.enable_watchdog = False
         axis.clear_errors()
-        axis.config.can_node_id = node_id
-        axis.config.can_node_id_extended = extended_id
+        axis.config.can.node_id = node_id
+        axis.config.can.is_extended = extended_id
         time.sleep(0.1)
         
         def my_cmd(cmd_name, **kwargs): command(canbus.handle, node_id, extended_id, cmd_name, **kwargs)
@@ -129,12 +129,12 @@ class TestSimpleCAN():
 
         my_cmd('set_node_id', node_id=node_id+20)
         asyncio.run(request(canbus.handle, node_id+20, extended_id, 'get_vbus_voltage'))
-        test_assert_eq(axis.config.can_node_id, node_id+20)
+        test_assert_eq(axis.config.can.node_id, node_id+20)
 
         # Reset node ID to default value
         command(canbus.handle, node_id+20, extended_id, 'set_node_id', node_id=node_id)
         fence()
-        test_assert_eq(axis.config.can_node_id, node_id)
+        test_assert_eq(axis.config.can.node_id, node_id)
 
         # Check that extended node IDs are not carelessly projected to 6-bit IDs
         extended_id = not extended_id
@@ -146,6 +146,8 @@ class TestSimpleCAN():
         axis.encoder.set_linear_count(123)
         test_assert_eq(my_req('get_encoder_estimates')['encoder_pos_estimate'], 123.0 / axis.encoder.config.cpr, accuracy=0.01)
         test_assert_eq(my_req('get_encoder_count')['encoder_shadow_count'], 123.0, accuracy=0.01)
+
+        start = time.monotonic()
 
         my_cmd('clear_errors')
         fence()
@@ -219,6 +221,7 @@ class TestSimpleCAN():
         # note that this will include the heartbeats that were received during the
         # watchdog test (which takes 4.8s).
         heartbeats = asyncio.run(get_all(record_messages(canbus.handle, node_id, extended_id, 'heartbeat', timeout = 1.0)))
+        logger.debug('recorded {} heartbeats during {}s'.format(len(heartbeats), time.monotonic() - start))
         test_assert_eq(len(heartbeats), 5.8 / 0.1, accuracy=0.05)
         test_assert_eq([msg['error'] for msg in heartbeats[0:35]], [0] * 35) # before watchdog expiry
         test_assert_eq([msg['error'] for msg in heartbeats[-10:]], [AXIS_ERROR_WATCHDOG_TIMER_EXPIRED] * 10) # after watchdog expiry

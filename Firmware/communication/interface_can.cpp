@@ -85,7 +85,9 @@ bool ODriveCAN::start_can_server() {
 }
 
 // Send a CAN message on the bus
-uint32_t ODriveCAN::write(can_Message_t &txmsg) {
+// @param tx_mailbox: A bitfield selecting the mailboxes that are allowed to be
+//        used for this message.
+uint32_t ODriveCAN::write(can_Message_t &txmsg, uint32_t tx_mailbox) {
     if (HAL_CAN_GetError(handle_) == HAL_CAN_ERROR_NONE) {
         CAN_TxHeaderTypeDef header;
         header.StdId = txmsg.id;
@@ -95,11 +97,9 @@ uint32_t ODriveCAN::write(can_Message_t &txmsg) {
         header.DLC = txmsg.len;
         header.TransmitGlobalTime = FunctionalState::DISABLE;
 
-        uint32_t retTxMailbox = 0;
-        if (HAL_CAN_GetTxMailboxesFreeLevel(handle_) > 0)
-            HAL_CAN_AddTxMessage(handle_, &header, txmsg.buf, &retTxMailbox);
-
-        return retTxMailbox;
+        uint32_t status = HAL_CAN_AddTxMessageToMailbox(handle_, &header, txmsg.buf, &tx_mailbox);
+        handle_->ErrorCode = 0;
+        return status == HAL_OK ? 0 : -1;
     } else {
         return -1;
     }
